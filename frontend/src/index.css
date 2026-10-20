@@ -1,0 +1,146 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #0f1117;
+  color: #e8eaed;
+  min-height: 100vh;
+}
+#root { min-height: 100vh; display: flex; flex-direction: column; }
+
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+header h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+header .badge {
+  font-size: 0.7rem;
+  background: #1a2332;
+  color: #7dd3fc;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #1e3a5f;
+}
+
+.tools-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tool-chip {
+  font-size: 0.75rem;
+  background: #1a1d27;
+  border: 1px solid #2a2f3a;
+  color: #a5b4c4;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 320px;
+  background: #161920;
+  border: 1px solid #252a35;
+  border-radius: 16px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.msg {
+  max-width: 85%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.925rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.msg.user {
+  align-self: flex-end;
+  background: #1e3a5f;
+  color: #e0f2fe;
+}
+.msg.assistant {
+  align-self: flex-start;
+  background: #1c1f2a;
+  border: 1px solid #2a2f3a;
+}
+.msg .tools {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #2a2f3a;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+.msg .tools strong { color: #7dd3fc; }
+
+.composer {
+  display: flex;
+  gap: 10px;
+}
+.composer input {
+  flex: 1;
+  background: #161920;
+  border: 1px solid #2a2f3a;
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #e8eaed;
+  font-size: 0.95rem;
+  outline: none;
+}
+.composer input:focus { border-color: #3b82f6; }
+.composer button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0 22px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.composer button:disabled { opacity: 0.5; cursor: not-allowed; }
+.composer button:hover:not(:disabled) { background: #1d4ed8; }
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.suggestions button {
+  background: transparent;
+  border: 1px solid #2a2f3a;
+  color: #94a3b8;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.suggestions button:hover {
+  border-color: #3b82f6;
+  color: #7dd3fc;
+}
+
+footer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #64748b;
+}
