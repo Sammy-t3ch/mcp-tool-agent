@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: mcp-tool-agent-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_BASE_URL
+        sync: false
+      - key: LLM_MODEL
+        value: gpt-4o-mini
+      - key: PYTHONPATH
+        value: .
+    healthCheckPath: /api/health
