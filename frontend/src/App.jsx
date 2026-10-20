@@ -6,7 +6,7 @@ const SUGGESTIONS = [
   'What is the weather in Abuja?',
   'Calculate: sqrt(144) + 25 * 2',
   'What time is it?',
-  'Save a note titled meeting: discuss MCP agent demo',
+  'Save a note: meeting about agent demo',
   'List my notes',
 ]
 
@@ -15,7 +15,7 @@ export default function App() {
     {
       role: 'assistant',
       content:
-        'Hi — I am an MCP-style tool agent. I can use calculator, weather, time, and notes tools. Try a suggestion below or type anything.',
+        'Tool-calling agent ready. I can run calculator, weather, time, and notes tools. Pick a prompt below or type your own.',
       tool_calls: [],
     },
   ])
@@ -33,7 +33,7 @@ export default function App() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [messages, loading])
 
   async function send(text) {
     const msg = (text || input).trim()
@@ -58,7 +58,7 @@ export default function App() {
         ...m,
         {
           role: 'assistant',
-          content: `Error: ${e.message}. Is the backend running on port 8000?`,
+          content: `Backend offline — deploy the API (Render blueprint in the repo) and set VITE_API_URL.\n\n${e.message}`,
           tool_calls: [],
         },
       ])
@@ -69,37 +69,56 @@ export default function App() {
 
   return (
     <div className="app">
-      <header>
-        <h1>MCP Tool Agent</h1>
-        <span className="badge">Tool-calling · OpenAI-compatible · LM Studio ready</span>
+      <header className="header">
+        <div className="brand">
+          <div className="brand-row">
+            <div className="logo">M</div>
+            <h1>MCP Tool Agent</h1>
+          </div>
+          <p className="tagline">
+            Registry-based tool calling. OpenAI-compatible · LM Studio ready.
+          </p>
+        </div>
+        <span className="badge">Live demo</span>
       </header>
 
-      {tools.length > 0 && (
-        <div className="tools-bar">
-          {tools.map((t) => (
-            <span key={t.name} className="tool-chip" title={t.description}>
-              {t.name}
-            </span>
-          ))}
-        </div>
-      )}
+      <div className="tools-strip">
+        <span className="tools-label">Tools</span>
+        {(tools.length
+          ? tools.map((t) => t.name)
+          : ['calculator', 'get_weather', 'get_current_time', 'save_note', 'list_notes']
+        ).map((name) => (
+          <span key={name} className="tool-chip">
+            {name}
+          </span>
+        ))}
+      </div>
 
       <div className="chat">
         {messages.map((m, i) => (
           <div key={i} className={`msg ${m.role}`}>
             {m.content}
             {m.tool_calls?.length > 0 && (
-              <div className="tools">
+              <div className="tools-block">
                 {m.tool_calls.map((tc, j) => (
-                  <div key={j}>
-                    <strong>{tc.tool}</strong>({JSON.stringify(tc.arguments)}) → {tc.result}
+                  <div key={j} className="tool-call">
+                    <div>
+                      <span className="name">{tc.tool}</span>
+                      {' '}
+                      {JSON.stringify(tc.arguments)}
+                    </div>
+                    <div className="result">→ {tc.result}</div>
                   </div>
                 ))}
               </div>
             )}
           </div>
         ))}
-        {loading && <div className="msg assistant">Thinking / calling tools…</div>}
+        {loading && (
+          <div className="typing" aria-label="Loading">
+            <span /><span /><span />
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -121,7 +140,7 @@ export default function App() {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask me anything that needs a tool…"
+          placeholder="Ask something that needs a tool…"
           disabled={loading}
         />
         <button type="submit" disabled={loading || !input.trim()}>
@@ -129,9 +148,11 @@ export default function App() {
         </button>
       </form>
 
-      <footer>
-        Tools are registered in a central registry. The LLM decides which to call. Works with OpenAI, Claude, NIM, LM Studio.
-      </footer>
+      <p className="footer">
+        Tools live in a central registry. The model picks which to call.
+        <br />
+        Built for demos · GitHub: Sammy-t3ch/mcp-tool-agent
+      </p>
     </div>
   )
 }
