@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 import os
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -10,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="MCP Tool Agent", version="1.0.0")
+app = FastAPI(title="MCP Tool Agent", version="1.0.1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +22,8 @@ app.add_middleware(
 )
 
 _NOTES: dict[str, str] = {}
+_MAX_RESULT_LEN = 500
+_MAX_EXPONENT = 20
 
 
 def _calculator(expression: str) -> str:
@@ -29,9 +32,31 @@ def _calculator(expression: str) -> str:
         "sqrt": math.sqrt, "pow": math.pow, "sin": math.sin,
         "cos": math.cos, "tan": math.tan, "pi": math.pi, "e": math.e,
     }
+    if "**" in expression:
+        m = re.search(r"\*\*\s*(\d+)", expression)
+        if m and int(m.group(1)) > _MAX_EXPONENT:
+            return (
+                f"Error evaluating '{expression}': "
+                f"exponent too large (max {_MAX_EXPONENT} for demo safety)"
+            )
+    compact = expression.replace(" ", "")
+    if "pow(" in compact:
+        m2 = re.search(r"pow\([^,]+,(\d+)", compact)
+        if m2 and int(m2.group(1)) > _MAX_EXPONENT:
+            return (
+                f"Error evaluating '{expression}': "
+                f"exponent too large (max {_MAX_EXPONENT} for demo safety)"
+            )
     try:
         result = eval(expression, {"__builtins__": {}}, allowed)
-        return f"{expression} = {result}"
+        out = f"{expression} = {result}"
+        if len(out) > _MAX_RESULT_LEN:
+            s = str(result)
+            return (
+                f"{expression} = {s[:200]}… "
+                f"(result truncated, {len(s)} digits)"
+            )
+        return out
     except Exception as e:
         return f"Error evaluating '{expression}': {e}"
 
@@ -63,6 +88,21 @@ def _weather(city: str) -> str:
         "New York": "New York: 18°C, Clear, humidity 55%",
     }
     return samples.get(city_clean, f"{city_clean}: 25°C, Clear skies (mock data)")
+
+
+def _extract_city(message: str) -> str:
+    lower = message.lower()
+    for c in ["Port Harcourt", "New York", "Lagos", "Abuja", "London"]:
+        if c.lower() in lower:
+            return c
+    m = re.search(
+        r"\b(?:in|for|at)\s+([A-Za-z][A-Za-z\s\-]{1,40}?)(?:\?|$|,|\.)",
+        message,
+        re.I,
+    )
+    if m:
+        return m.group(1).strip()
+    return "Abuja"
 
 
 TOOLS_META = [
@@ -132,11 +172,7 @@ def _demo_chat(message: str) -> ChatResponse:
         return ChatResponse(reply=f"Tool result: {result}", tool_calls=tool_calls)
 
     if "weather" in lower or "temperature" in lower:
-        city = "Abuja"
-        for c in ["Lagos", "Abuja", "London", "New York", "Port Harcourt"]:
-            if c.lower() in lower:
-                city = c
-                break
+        city = _extract_city(message)
         result = execute_tool("get_weather", {"city": city})
         tool_calls.append({"tool": "get_weather", "arguments": {"city": city}, "result": result})
         return ChatResponse(reply=result, tool_calls=tool_calls)
